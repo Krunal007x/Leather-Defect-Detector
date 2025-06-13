@@ -12,7 +12,8 @@ LABELS = ["Good", "Defective"]
 @st.cache_resource
 def load_model():
     try:
-        return tf.saved_model.load("model")
+        load_options = tf.saved_model.LoadOptions(experimental_io_device="/job:localhost")
+        return tf.saved_model.load("model", options=load_options)
     except Exception as e:
         st.error(f"❌ Failed to load model: {e}")
         return None
@@ -37,6 +38,7 @@ st.title("🔍 Defect Detection using TensorFlow + Streamlit")
 # Load model
 model = load_model()
 
+# Upload image
 uploaded_file = st.file_uploader("📁 Upload an image (JPG or PNG)", type=["jpg", "jpeg", "png"])
 
 if uploaded_file:
@@ -63,5 +65,6 @@ if uploaded_file:
         st.error(f"❌ Prediction failed: {e}")
 else:
     st.warning("👆 Please upload an image file to start.")
+
 
 
