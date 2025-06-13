@@ -5,19 +5,19 @@ from PIL import Image
 
 # Constants
 TARGET_SIZE = (224, 224)
-LABELS = ["Good", "Defective"]  # Update these labels if needed
+LABELS = ["Good", "Defective"]  # You can customize this
 
-# Load Keras .h5 model once
+# Load TensorFlow SavedModel
 @st.cache_resource
 def load_model():
     try:
-        model = tf.keras.models.load_model("keras_model.h5")
+        model = tf.saved_model.load("model")  # Path to folder containing saved_model.pb
         return model
     except Exception as e:
         st.error(f"❌ Failed to load model: {e}")
         return None
 
-# Preprocess the image
+# Preprocess uploaded image
 def preprocess_image(image: Image.Image, target_size=(224, 224)):
     try:
         image = image.convert("RGB")
@@ -29,14 +29,12 @@ def preprocess_image(image: Image.Image, target_size=(224, 224)):
         st.error(f"⚠️ Image preprocessing failed: {e}")
         return None
 
-# Streamlit App
+# Streamlit UI
 st.set_page_config(page_title="Defect Detection", layout="centered")
-st.title("🔍 Defect Detection using Keras + Streamlit")
+st.title("📦 Defect Detection using TensorFlow SavedModel")
 
-# Load model
 model = load_model()
 
-# Image upload
 uploaded_file = st.file_uploader("📁 Upload an image (JPG or PNG)", type=["jpg", "jpeg", "png"])
 
 if uploaded_file:
@@ -47,7 +45,10 @@ if uploaded_file:
 
     if input_data is not None and model is not None:
         with st.spinner("🧠 Running inference..."):
-            pred_tensor = model.predict(input_data)
+            infer = model.signatures["serving_default"]
+            output = infer(tf.constant(input_data))
+            pred_tensor = list(output.values())[0].numpy()
+
             pred_label = LABELS[np.argmax(pred_tensor)]
             confidence = np.max(pred_tensor)
 
@@ -57,6 +58,7 @@ if uploaded_file:
         st.error("🚫 Inference skipped due to earlier errors.")
 else:
     st.warning("👆 Please upload an image file to start.")
+
 
 
 
