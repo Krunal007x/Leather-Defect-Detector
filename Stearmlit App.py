@@ -8,6 +8,8 @@ import io
 TARGET_SIZE = (224, 224)
 LABELS = ["Good", "Defective"]
 
+import tensorflow as tf
+model = tf.keras.models.load_model("model")
 
 # Preprocess the input image
 def preprocess_image(image: Image.Image, target_size=(224, 224)):
