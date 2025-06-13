@@ -28,6 +28,9 @@ def preprocess_image(image: Image.Image, target_size=(224, 224)):
 st.set_page_config(page_title="Defect Detection", layout="centered")
 st.title("🔍 Defect Detection using Keras 3 + Streamlit")
 
+# Load model
+model = load_model()
+
 uploaded_file = st.file_uploader("📁 Upload an image (JPG or PNG)", type=["jpg", "jpeg", "png"])
 
 if uploaded_file:
