@@ -1,5 +1,5 @@
 import streamlit as st
-from keras.layers import TFSMLayer
+import tensorflow as tf
 import numpy as np
 from PIL import Image
 import io
@@ -12,7 +12,7 @@ LABELS = ["Good", "Defective"]
 @st.cache_resource
 def load_model():
     try:
-        return TFSMLayer("model", call_endpoint="serving_default")
+        return tf.saved_model.load("model")
     except Exception as e:
         st.error(f"❌ Failed to load model: {e}")
         return None
@@ -32,7 +32,7 @@ def preprocess_image(image: Image.Image, target_size=(224, 224)):
 
 # App layout
 st.set_page_config(page_title="Defect Detection", layout="centered")
-st.title("🔍 Defect Detection using Keras 3 + Streamlit")
+st.title("🔍 Defect Detection using TensorFlow + Streamlit")
 
 # Load model
 model = load_model()
@@ -48,12 +48,12 @@ if uploaded_file:
 
         if input_data is not None and model is not None:
             with st.spinner("🧠 Running inference..."):
-                preds = model(input_data)
-                pred_tensor = list(preds.values())[0]
-                preds_np = pred_tensor.numpy()
+                infer = model.signatures["serving_default"]
+                output = infer(tf.constant(input_data))
+                pred_tensor = list(output.values())[0].numpy()
 
-                pred_label = LABELS[np.argmax(preds_np)]
-                confidence = np.max(preds_np)
+                pred_label = LABELS[np.argmax(pred_tensor)]
+                confidence = np.max(pred_tensor)
 
                 st.success(f"🎯 Prediction: **{pred_label}**")
                 st.info(f"📊 Confidence: `{confidence:.2%}`")
@@ -63,4 +63,5 @@ if uploaded_file:
         st.error(f"❌ Prediction failed: {e}")
 else:
     st.warning("👆 Please upload an image file to start.")
+
 
