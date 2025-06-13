@@ -8,14 +8,6 @@ import io
 TARGET_SIZE = (224, 224)
 LABELS = ["Good", "Defective"]
 
-# Load model only once
-@st.cache_resource
-def load_model():
-    try:
-        return TFSMLayer("model", call_endpoint="serving_default")
-    except Exception as e:
-        st.error(f"❌ Failed to load model: {e}")
-        return None
 
 # Preprocess the input image
 def preprocess_image(image: Image.Image, target_size=(224, 224)):
