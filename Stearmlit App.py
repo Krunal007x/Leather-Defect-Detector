@@ -1,5 +1,5 @@
 import streamlit as st
-from keras.models import load_model
+from keras.layers import TFSMLayer
 import numpy as np
 from PIL import Image
 import io
@@ -8,8 +8,14 @@ import io
 TARGET_SIZE = (224, 224)
 LABELS = ["Good", "Defective"]
 
-import tensorflow as tf
-model = tf.keras.models.load_model("model")
+# Load model only once
+@st.cache_resource
+def load_model():
+    try:
+        return TFSMLayer("model", call_endpoint="serving_default")
+    except Exception as e:
+        st.error(f"❌ Failed to load model: {e}")
+        return None
 
 # Preprocess the input image
 def preprocess_image(image: Image.Image, target_size=(224, 224)):
@@ -57,3 +63,4 @@ if uploaded_file:
         st.error(f"❌ Prediction failed: {e}")
 else:
     st.warning("👆 Please upload an image file to start.")
+
